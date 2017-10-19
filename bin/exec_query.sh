@@ -7,7 +7,7 @@ DIR=`cd $bin/../; pwd`
 
 echo "========== running query ${QUERY} =========="
 APP_CONF="${DIR}/conf/application-run.conf"
-JAR="\"${DIR}/target/scala-2.11/spark-tpch-queries-1.0.jar\""
+JAR="\"${DIR}/target/scala-2.11/spark-tpch-queries.jar\""
 CLASS="main.scala.TpchQuery"
 OPTION="${QUERY} ${HDFS_MASTER}${HDFS_INPUT} ${HDFS_MASTER}${HDFS_OUTPUT}"
 START_TS=`get_start_ts`;
