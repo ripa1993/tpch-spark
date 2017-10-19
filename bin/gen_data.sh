@@ -15,7 +15,6 @@ for i in $(seq 1 ${NUM_PARTITIONS});
 do
     echo_and_run sh -c "cd ${DIR}/dbgen && ${DIR}/dbgen/dbgen -s ${SCALE_FACTOR} -S $i -C ${NUM_PARTITIONS} -f"
 done
-echo_and_run sh -c "cd ${DIR}/dbgen && ${DIR}/dbgen/dbgen -s ${SCALE_FACTOR} -f"
 echo_and_run sh -c "mkdir ${DATA_FOLDER}"
 echo_and_run sh -c "mv ${DIR}/dbgen/*.tbl* ${DATA_FOLDER}"
 
