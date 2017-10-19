@@ -5,7 +5,10 @@ import org.apache.spark.SparkConf
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql._
+
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -42,11 +45,7 @@ object TpchQuery {
       df.write.mode("overwrite").format("com.databricks.spark.csv").option("header", "true").save(outputDir + "/" + className)
   }
 
-  def executeQueries(sc: SparkContext, schemaProvider: TpchSchemaProvider, queryNum: Int): ListBuffer[(String, Float)] = {
-
-    // if set write results to hdfs, if null write to stdout
-    // val OUTPUT_DIR: String = "/tpch"
-    val OUTPUT_DIR: String = "file://" + new File(".").getAbsolutePath() + "/dbgen/output"
+  def executeQueries(sc: SparkContext, schemaProvider: TpchSchemaProvider, queryNum: Int, outputDir: String): ListBuffer[(String, Float)] = {
 
     val results = new ListBuffer[(String, Float)]
 
@@ -62,7 +61,7 @@ object TpchQuery {
 
       val query = Class.forName(f"main.scala.Q${queryNo}%02d").newInstance.asInstanceOf[TpchQuery]
 
-      outputDF(query.execute(sc, schemaProvider), OUTPUT_DIR, query.getName())
+      outputDF(query.execute(sc, schemaProvider), outputDir, query.getName())
 
       val t1 = System.nanoTime()
 
@@ -74,25 +73,32 @@ object TpchQuery {
     return results
   }
 
+
   def main(args: Array[String]): Unit = {
 
-    var queryNum = 0;
-    if (args.length > 0)
-      queryNum = args(0).toInt
+    Logger.getLogger("org.apache.spark").setLevel(Level.INFO)
 
-    val conf = new SparkConf().setAppName("Simple Application")
+    if (args.length < 2){
+      println("usage: {query_num} {hdfs_input} [hdfs_output]")
+      return
+    }
+
+    val queryNum: Int = args(0).toInt;
+    val inputDir: String = args(1);
+    var outputDir: String = "";
+
+    if (args.length>2){
+      outputDir = args(2)
+    }
+
+    val conf = new SparkConf().setAppName("TPCH_"+queryNum)
     val sc = new SparkContext(conf)
 
-    // read files from local FS
-    val INPUT_DIR = "file://" + new File(".").getAbsolutePath() + "/dbgen"
 
-    // read from hdfs
-    // val INPUT_DIR: String = "/dbgen"
-
-    val schemaProvider = new TpchSchemaProvider(sc, INPUT_DIR)
+    val schemaProvider = new TpchSchemaProvider(sc, inputDir)
 
     val output = new ListBuffer[(String, Float)]
-    output ++= executeQueries(sc, schemaProvider, queryNum)
+    output ++= executeQueries(sc, schemaProvider, queryNum, outputDir)
 
     val outFile = new File("TIMES.txt")
     val bw = new BufferedWriter(new FileWriter(outFile, true))
