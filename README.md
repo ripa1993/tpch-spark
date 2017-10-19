@@ -1,32 +1,44 @@
 # tpch-spark
 
 TPC-H queries implemented in Spark using the DataFrames API.
-Tested under Spark 2.0.0
-
-Savvas Savvides
-
-savvas@purdue.edu
+Tested under Spark 2.0
 
 ### Running
 
-First compile using:
+Compile dbgen tool:
 
 ```
-sbt package
+cd ./dbgen && make
 ```
 
-Make sure you set the INPUT_DIR and OUTPUT_DIR in TpchQuery class before compiling to point to the
-location the of the input data and where the output should be saved.
-
-You can then run a query using:
+Edit the configuration file config.sh
 
 ```
-spark-submit --class "main.scala.TpchQuery" --master MASTER target/scala-2.11/spark-tpc-h-queries_2.11-1.0.jar ##
+    QUERY="1"               # query to execute [1, ... 22]
+    MASTER="10.0.0.9"       # ip of Spark master
+    HDFS="10.0.0.4"         # ip of Hadoop master
+    SCALE_FACTOR="1"        # size of the input dataset, "1" generates ~1GB of data
+    NUM_PARTITIONS="100"    # number of files in which to partition the data
+    EXECUTOR_MEMORY="100g"  # memory of Spark executor
+    HDFS_INPUT="/dbgen"     # HDFS folder where to store the generated data
+    HDFS_OUTPUT=""          # HDFS folder where to store the query result, empty to skip storing
 ```
 
-where ## is the number of the query to run e.g 1, 2, ..., 22
-and MASTER specifies the spark-mode e.g local, yarn, standalone etc...
+Generate the dataset with
 
+```
+./bin/gen_data.sh
+```
+
+Execute the query with
+
+```
+./bin/exec_query.sh
+```
+
+### Acknowledgements
+
+The original repository by Savvas Savvides (savvas@purdue.edu)
 
 
 ### Other Implementations
